@@ -21,17 +21,17 @@ export class Comment {
   @Field(() => String)
   comment: string;
 
-  @ManyToOne(() => Feed)
+  @ManyToOne(() => Feed, (feed) => feed.comment)
   @Field(() => Feed)
   feed: Feed;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { cascade: ['remove'], onDelete: 'CASCADE' })
   @Field(() => User)
   user: User;
 
-  @ManyToOne(() => Comment) // 자기참조
+  @ManyToOne(() => Comment, { cascade: ['remove'] }) // 자기참조
   @Field(() => Comment)
-  p_comment: Comment;
+  pComment: Comment;
 
   @CreateDateColumn()
   createdAt: Date;
