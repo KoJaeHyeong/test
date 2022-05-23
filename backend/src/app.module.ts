@@ -14,10 +14,10 @@ import { PaymentModule } from './apis/payment/payment.module';
 import { ChatModule } from './apis/chat/chat.module';
 import { AppController } from './apis/app/app.controller';
 import { AppService } from './apis/app/app.service';
-// import { FeedModule } from './apis/feed/feed.module';
 import { FileModule } from './apis/file/file.module';
 import { ChatGateway } from './apis/chat/chat.gateway';
 import { FeedModule } from './apis/feed/feed.module';
+import { CronModule } from './apis/cron/cron.module';
 
 @Module({
   imports: [
@@ -30,6 +30,7 @@ import { FeedModule } from './apis/feed/feed.module';
     PaymentModule, // 결제 모듈
     FileModule, // 파일 모듈
     ChatModule, // 채팅 시스템
+    CronModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'src/commons/graphql/schema.gql',
@@ -42,7 +43,7 @@ import { FeedModule } from './apis/feed/feed.module';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      // host: '10.118.112.4', // prod
+      // // host: '10.118.112.4', // prod
       host: '10.82.224.4', // dev
       // host: 'my-database', // local
       port: 3306,
@@ -50,7 +51,7 @@ import { FeedModule } from './apis/feed/feed.module';
       password: '1234',
       // database: 't1', //prod
       database: 'team-01-database', // dev
-      // database: 'team01-database',//local
+      // database: 'team01-database', //local
       entities: [__dirname + '/apis/**/**/*.entity.*'],
       synchronize: true,
       logging: true,

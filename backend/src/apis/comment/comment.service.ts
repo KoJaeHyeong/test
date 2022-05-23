@@ -18,20 +18,19 @@ export class CommentService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async findOne({ feedId }) {
-    const result = await this.commentRepository.findOne({
+  async findAll({ feedId }) {
+    const result = await this.commentRepository.find({
       where: { feed: feedId },
-      relations: ['feed'],
+      relations: ['pComment','user']
     });
-    console.log(result);
+    console.log(result, 'ccc')
 
     return result;
   }
 
-  async create({ email, createCommentInput }) {
-    console.log(email, '유저아이디');
+  async create({ currentUser, createCommentInput }) {
     console.log('댓글내용');
-    const { pCommentId, feedId, comment } = createCommentInput;
+    const { pCommentId, feedId, commentDetail } = createCommentInput;
     let parentComment;
     if (pCommentId) {
       parentComment = await this.commentRepository.findOne({
@@ -41,15 +40,18 @@ export class CommentService {
     console.log(parentComment, '부모댓글');
 
     const comUser = await this.userRepository.findOne({
-      where: { email: email },
+      where: { email: currentUser.email },
     });
 
+    const feed = await this.feedRepository.findOne({
+      where: { id: feedId },
+    });
     console.log(comUser);
 
     return await this.commentRepository.save({
       user: comUser,
-      feed: feedId,
-      comment: comment,
+      feed,
+      commentDetail,
       pComment: parentComment,
     });
   }
@@ -58,10 +60,14 @@ export class CommentService {
     const result = await this.commentRepository.findOne({
       where: { id: commentId },
     });
+    const comUser = await this.userRepository.findOne({
+      where: { email: email },
+    });
+
     console.log(result);
     return await this.commentRepository.save({
       ...result,
-      user: email,
+      user: comUser,
       ...updateCommentInput,
     });
   }

@@ -14,13 +14,13 @@ import { Feed } from 'src/apis/feed/entities/feed.entity';
 @Entity()
 @ObjectType()
 export class Comment {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('increment')
   @Field(() => String)
   id: string;
 
   @Column()
   @Field(() => String)
-  comment: string;
+  commentDetail: string;
 
   @ManyToOne(() => Feed, (feed) => feed.comment, {
     onDelete: 'CASCADE',
@@ -36,17 +36,23 @@ export class Comment {
   @Field(() => User)
   user: User;
 
-  @ManyToOne(() => Comment, { cascade: true, onDelete: 'CASCADE' }) // 자기참조
-  @Field(() => Comment)
+  @ManyToOne(() => Comment, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    nullable: true,
+  }) // 자기참조
+  @Field(() => Comment, { nullable: true })
   pComment: Comment;
+
+  @CreateDateColumn()
+  @Field(() => Date)
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  @Field(() => Date)
+  updatedAt: Date;
 
   @DeleteDateColumn()
   @Field(() => Date)
   deletedAt: Date;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }

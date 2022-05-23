@@ -1,7 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { GqlAuthAccessGuard } from 'src/commons/auth/gql-auth-guard';
-import { CurrentUser } from 'src/commons/auth/gql-user.param';
+import { CurrentUser, ICurrentUser } from 'src/commons/auth/gql-user.param';
 import { CommentService } from './comment.service';
 import { createCommentInput } from './dto/createComment.input';
 import { Comment } from './entities/comment.entity';
@@ -13,25 +13,27 @@ export class CommentResolver {
     private readonly commentService: CommentService, //
   ) {}
 
-  @Query(() => Comment)
-  fetchComment(@Args('feedId') feedId: string) {
-    return this.commentService.findOne({ feedId });
+  @Query(() => [Comment])
+  fetchComment(
+    @Args('feedId') feedId: string, //
+  ) {
+    return this.commentService.findAll({ feedId });
   }
 
-  // @UseGuards(GqlAuthAccessGuard) // 로그인한 유저 댓글 가능
+
+  @UseGuards(GqlAuthAccessGuard) // 로그인한 유저 댓글 가능
   @Mutation(() => Comment)
   createComment(
-    // @CurrentUser() currentUser: any, // 로그인 구현 되면 열기
-    @Args('email') email: string, //
+    @CurrentUser() currentUser: ICurrentUser,
     @Args('createCommentInput') createCommentInput: createCommentInput,
   ) {
-    return this.commentService.create({ email, createCommentInput });
+    return this.commentService.create({ currentUser, createCommentInput });
   }
 
-  // @UseGuards(GqlAuthAccessGuard)
+  @UseGuards(GqlAuthAccessGuard)
   @Mutation(() => Comment)
   updateComment(
-    // @CurrentUser() currentUser: any, // 로그인 구현 되면 열기
+    @CurrentUser() currentUser: ICurrentUser,
     @Args('email') email: string,
     @Args('commentId') commentId: string,
     @Args('updateCommentInput') updateCommentInput: updateCommentInput,
@@ -43,9 +45,10 @@ export class CommentResolver {
     });
   }
 
-  // @UseGuards(GqlAuthAccessGuard)
+  @UseGuards(GqlAuthAccessGuard)
   @Mutation(() => Boolean)
   deleteComment(
+    @CurrentUser() currentUser: ICurrentUser,
     @Args('commentId') commentId: string, //
   ) {
     return this.commentService.delete({ commentId }); // feedId 추가해야함
