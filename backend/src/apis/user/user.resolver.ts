@@ -1,4 +1,4 @@
-import { Query, Resolver, Args, Mutation, Int } from '@nestjs/graphql';
+import { Query, Resolver, Args, Mutation } from '@nestjs/graphql';
 import { UserService } from './user.service';
 // import { FeedService } from '../feed/feed.service';
 import { User } from './entities/user.entity';
@@ -26,6 +26,13 @@ export class UserResolver {
     @CurrentUser() currentUser: ICurrentUser, //
   ) {
     return this.userService.fetch({ email: currentUser.email });
+  }
+
+  @Query(() => User) // 마이페이지 조회
+  fetchNickname(
+    @Args('nickname') nickname: string, //
+  ) {
+    return this.userService.load({ nickname });
   }
 
   @Mutation(() => String) // 이메일 중복 확인
@@ -62,7 +69,7 @@ export class UserResolver {
     const currentEmail = currentUser.email;
     return await this.userService.update({
       currentEmail,
-      updateUserInput,     
+      updateUserInput,
     });
   }
 
@@ -72,11 +79,15 @@ export class UserResolver {
     @CurrentUser() currentUser: ICurrentUser,
     @Args('originPassword') originPassword: string, //
     @Args('updatePassword') updatePassword: string, //
-  ){
-    const currentEmail = currentUser.email
-    return await this.userService.updatePassword({ originPassword, updatePassword, currentEmail })
+  ) {
+    const currentEmail = currentUser.email;
+    return await this.userService.updatePassword({
+      originPassword,
+      updatePassword,
+      currentEmail,
+    });
   }
-     
+
   @UseGuards(GqlAuthAccessGuard) // 로그인한 유저
   @Mutation(() => Boolean) // 회원탈퇴 API
   deleteUser(
@@ -89,14 +100,14 @@ export class UserResolver {
   @Mutation(() => String) // 인증번호 발송
   createPhoneAuth(
     @Args('phone') phone: string, //
-  ){
-    return this.userService.send({ phone })
+  ) {
+    return this.userService.send({ phone });
   }
 
   @Mutation(() => String) // 인증번호 확인
   confirmAuthNumber(
     @Args('authNumber') authNumber: string, //
-  ){
-    return this.userService.confirm({ authNumber })
+  ) {
+    return this.userService.confirm({ authNumber });
   }
 }

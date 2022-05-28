@@ -15,24 +15,23 @@ import { ChatModule } from './apis/chat/chat.module';
 import { AppController } from './apis/app/app.controller';
 import { AppService } from './apis/app/app.service';
 import { FileModule } from './apis/file/file.module';
-import { ChatGateway } from './apis/chat/chat.gateway';
 import { FeedModule } from './apis/feed/feed.module';
 import { CronModule } from './apis/cron/cron.module';
 import { FeedTagModule } from './apis/feedTag/feedTag.module';
 
 @Module({
   imports: [
-    UserModule, // 유저 모듈
-    CommentModule, // 댓글 모듈
     FeedModule, // 피드 모듈
     FeedImgModule, // 피드 이미지 모듈
+    FeedTagModule, // 피드 태그 모듈
+    UserModule, // 유저 모듈
+    CommentModule, // 댓글 모듈
     AuthModule, // 로그인 모듈
     RegionModule, // 지역 & 날씨 모듈
     PaymentModule, // 결제 모듈
     FileModule, // 파일 모듈
     ChatModule, // 채팅 시스템
-    CronModule,
-    FeedTagModule,
+    CronModule, // 크론 모듈
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'src/commons/graphql/schema.gql',
@@ -69,6 +68,6 @@ import { FeedTagModule } from './apis/feedTag/feedTag.module';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, ChatGateway], // 채팅 게이트웨이 넣기
+  providers: [AppService], // 채팅 게이트웨이 넣기
 })
 export class AppModule {}

@@ -3,6 +3,9 @@ import { FileUpload } from 'graphql-upload';
 import { Storage } from '@google-cloud/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { getToday } from 'src/commons/libraries/utils';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../user/entities/user.entity';
+import { Repository } from 'typeorm';
 
 interface IFeedImg {
   imgs: FileUpload[];
@@ -13,6 +16,11 @@ interface IUserImg {
 
 @Injectable()
 export class FileService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
+
   async uploadImgs({ imgs }: IFeedImg) {
     const storage = new Storage({
       keyFilename: process.env.STORAGE_KEY_FILENAME,
@@ -21,7 +29,6 @@ export class FileService {
 
     const waitedImgs = await Promise.all(imgs);
 
-    console.log('hi');
     const results = await Promise.all(
       waitedImgs.map((el) => {
         const uuid = uuidv4();
@@ -55,6 +62,7 @@ export class FileService {
         .on('finish', () => resolve(`${process.env.STORAGE_BUCKET}/${imgName}`))
         .on('error', () => reject());
     });
+
     return result;
   }
 }

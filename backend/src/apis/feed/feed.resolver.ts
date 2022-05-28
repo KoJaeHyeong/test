@@ -14,7 +14,7 @@ export class FeedResolver {
   constructor(
     private readonly feedService: FeedService,
     @Inject(CACHE_MANAGER)
-    private readonly cachManager: Cache,
+    private readonly cacheManager: Cache,
   ) {}
 
   @UseGuards(GqlAuthAccessGuard)
@@ -34,25 +34,35 @@ export class FeedResolver {
     region: string,
     @Args({ name: 'feedTags', type: () => [String], nullable: true })
     feedTags: string[],
-    @Args('page', { nullable: true })
+    @Args({ name: 'page', nullable: true, type: () => Int })
     page?: number,
-    @Args('count', { nullable: true })
-    count?: number,
   ) {
-    const redisInput = JSON.stringify({ region, feedTags, page, count });
-    const redis = await this.cachManager.get(redisInput);
+    try {
+      const redisInput = JSON.stringify({ region, feedTags, page });
+      const redis = await this.cacheManager.get(redisInput);
+      if (redis) {
+        console.log('redis에서 서치한 데이터');
+        return redis;
+      } else {
+        const result = await this.feedService.findWithTags({
+          feedTags,
+          region,
 
-    if (redis) return redis;
-    else {
+          page,
+        });
+        await this.cacheManager.set(redisInput, result, { ttl: 10 });
+        console.log('db에서 서치한 데이터');
+        return result;
+      }
+    } catch (error) {
       const result = await this.feedService.findWithTags({
         feedTags,
         region,
-        count,
         page,
       });
-      await this.cachManager.set(redisInput, result, { ttl: 15 });
-      console.log('db에서 서치한 데이터');
+
       return result;
+    } finally {
     }
   }
 
@@ -60,22 +70,66 @@ export class FeedResolver {
   @Query(() => fetchFeedOutput) // 유저 정보로 피드 조회
   async fetchMyFeeds(
     @CurrentUser() currentUser: ICurrentUser,
-    @Args('page', { nullable: true })
+    @Args({ name: 'page', nullable: true, type: () => Int })
     page?: number,
-    @Args('count', { nullable: true })
-    count?: number,
   ) {
-    const redisInput = JSON.stringify({ currentUser, page, count });
-    const redis = await this.cachManager.get(redisInput);
-    if (redis) return redis;
-    else {
-      const result = await this.feedService.findWithUser({
+    try {
+      const redisInput = JSON.stringify({ currentUser, page });
+      const redis = await this.cacheManager.get(redisInput);
+      if (redis) {
+        console.log('redis에서 서치한 데이터');
+
+        return redis;
+      } else {
+        const result = await this.feedService.findMyFeeds({
+          currentUser,
+          page,
+        });
+        await this.cacheManager.set(redisInput, result, { ttl: 10 });
+        console.log('db에서 서치한 데이터');
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result = await this.feedService.findMyFeeds({
         currentUser,
         page,
-        count,
       });
-      await this.cachManager.set(redisInput, result, { ttl: 15 });
-      console.log('db에서 서치한 데이터');
+
+      return result;
+    }
+  }
+
+  @Query(() => fetchFeedOutput)
+  async fetchUserFeeds(
+    @Args('userNickname')
+    userNickname: string,
+    @Args({ name: 'page', nullable: true, type: () => Int })
+    page?: number,
+  ) {
+    try {
+      const redisInput = JSON.stringify({ userNickname, page });
+      const redis = await this.cacheManager.get(redisInput);
+      if (redis) {
+        console.log('redis에서 서치한 데이터');
+
+        return redis;
+      } else {
+        const result = await this.feedService.findUserFeeds({
+          userNickname,
+          page,
+        });
+        await this.cacheManager.set(redisInput, result, { ttl: 3 });
+        console.log('db에서 서치한 데이터');
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result = await this.feedService.findUserFeeds({
+        userNickname,
+        page,
+      });
+
       return result;
     }
   }

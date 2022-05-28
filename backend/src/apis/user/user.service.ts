@@ -12,7 +12,7 @@ import { Region } from '../region/entities/region.entity';
 import * as bcrypt from 'bcrypt';
 import axios from 'axios';
 import { Cache } from 'cache-manager';
-import { getToday } from './utils/date';
+import { getToday } from '../../commons/libraries/utils';
 import { CurrentUser } from 'src/commons/auth/gql-user.param';
 
 @Injectable()
@@ -30,6 +30,15 @@ export class UserService {
     return await this.userRepository.find({
       relations: ['region'],
     });
+  }
+
+  async load({ nickname }) { // 닉네임으로 유저 & 피드 조회
+    const result = await this.userRepository.findOne({
+      where: { nickname: nickname },
+      relations: ['region']
+    });
+
+    return result;
   }
 
   async fetch({ email }) {
@@ -135,9 +144,9 @@ export class UserService {
 
   async updatePassword({ originPassword, updatePassword, currentEmail }) {
     const user = await this.userRepository.findOne({ email: currentEmail })
-    console.log(originPassword, "aaa")
-     const isAuth = await bcrypt.compare(originPassword, user.password);
-     console.log(isAuth,'ccc')
+  
+    const isAuth = await bcrypt.compare(originPassword, user.password);
+
     if (!isAuth)
       throw new UnprocessableEntityException('현재 비밀번호가 틀렸습니다.');
 
@@ -146,7 +155,6 @@ export class UserService {
       updatePassword, // 변경 비밀번호 해싱
         10,
       );
-      console.log(user.password, 'bbb')
 
     return this.userRepository.save( user )
   }
