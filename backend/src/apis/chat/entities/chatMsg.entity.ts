@@ -5,39 +5,30 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  DeleteDateColumn,
-  UpdateDateColumn,
   ManyToOne,
 } from 'typeorm';
+import { ChatRoom } from './chatRoom.entity';
 
 @Entity()
 @ObjectType()
-export class Chat {
-  @PrimaryGeneratedColumn('increment')
+export class ChatMsg {
+  @PrimaryGeneratedColumn('uuid')
   @Field(() => String)
-  id: string; // 룸 번호??가 될 수 있을까?
+  id: string;
 
   @Column()
   @Field(() => String)
-  room: string;
-
-  @Column({ type: 'longtext', nullable: true })
-  @Field(() => String, { nullable: true })
-  message?: string;
+  message: string;
 
   @ManyToOne(() => User)
   @Field(() => User)
   user: User;
 
+  @ManyToOne(() => ChatRoom)
+  @Field(() => ChatRoom)
+  chatRoom: ChatRoom;
+
   @CreateDateColumn()
   @Field(() => Date)
   createdAt: Date;
-
-  @UpdateDateColumn()
-  @Field(() => Date)
-  updatedAt: Date;
-
-  @DeleteDateColumn({ nullable: true })
-  @Field(() => Date)
-  deletedAt: Date;
 }

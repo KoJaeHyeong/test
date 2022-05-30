@@ -13,7 +13,6 @@ import * as bcrypt from 'bcrypt';
 import axios from 'axios';
 import { Cache } from 'cache-manager';
 import { getToday } from '../../commons/libraries/utils';
-import { CurrentUser } from 'src/commons/auth/gql-user.param';
 
 @Injectable()
 export class UserService {
@@ -32,10 +31,11 @@ export class UserService {
     });
   }
 
-  async load({ nickname }) { // 닉네임으로 유저 & 피드 조회
+  async load({ nickname }) {
+    // 닉네임으로 유저 & 피드 조회
     const result = await this.userRepository.findOne({
       where: { nickname: nickname },
-      relations: ['region']
+      relations: ['region'],
     });
 
     return result;
@@ -54,9 +54,9 @@ export class UserService {
   async overLapEmail({ email }) {
     const result = await this.userRepository.findOne({ email });
     if (result) {
-      throw new ConflictException('중복된 이메일입니다.')
-    } else if (email === undefined || !email.includes("@")) {
-      throw new UnprocessableEntityException('이메일이 올바르지 않습니다.')
+      throw new ConflictException('중복된 이메일입니다.');
+    } else if (email === undefined || !email.includes('@')) {
+      throw new UnprocessableEntityException('이메일이 올바르지 않습니다.');
     }
 
     return '사용가능한 이메일입니다.';
@@ -74,51 +74,77 @@ export class UserService {
     const region = await this.regionRepository.findOne({
       where: { id: regionId },
     });
- 
-    const emailBody = // 이메일 내용
+
+    const emailBody =
+      // 이메일 내용
       `
-          <html>
-              <body>
-                  <h1>온도衣 가입에 감사합니다!</h1>
-                  <hr />
-                  <div>${nickname}님의 가입을 축하드립니다. 많은 활동 부탁드립니다 </div>
-                  <div>가입일: ${getToday()}</div>
-              </body>
-          </html>
-      `
-    const appKey = process.env.EMAIL_APP_KEY
-    const XSecretKey = process.env.EMAIL_X_SECRET_KEY
-    const sender = process.env.EMAIL_SENDER
-  
+      <html>
+      <body>
+        <h1></h1>
+        <p align="center">
+          <img
+            src="https://capsule-render.vercel.app/api?&type=waving&color=timeAuto&height=180&section=header&text=${nickname}님 가입을 축하드립니다!&fontSize=50&animation=fadeIn&fontAlignY=45"
+          />
+        </p>
+        <p align="center" fontSize="150">
+          <a href="https://naver.com" >온도衣에서 오늘의 착장 자랑하기</a>
+        </p>
+        <p align="center">
+          <img
+            width="450"
+            src="https://i.ytimg.com/vi/z3pqoPAGbb0/maxresdefault.jpg"
+          />
+        </p>
+    
+        <div align="center">
+          ${nickname}님의 가입을 축하드립니다. 많은 활동 부탁드립니다
+        </div>
+        <div align="center">가입일: ${getToday()}</div>
+      </body>
+    </html>
+
+      `;
+    const appKey = process.env.EMAIL_APP_KEY;
+    const XSecretKey = process.env.EMAIL_X_SECRET_KEY;
+    const sender = process.env.EMAIL_SENDER;
+
     const emailSend = await axios.post(
-      `https://api-mail.cloud.toast.com/email/v2.0/appKeys/${appKey}/sender/mail`, 
-    {
-      senderAddress: sender,
-      title: "온도衣 가입을 환영합니다!",
-      body: emailBody,
-      receiverList: [{receiveMailAddr: userInfo.email, receiveType: "MRT0" }]
-    },
-    {
+      `https://api-mail.cloud.toast.com/email/v2.0/appKeys/${appKey}/sender/mail`,
+      {
+        senderAddress: sender,
+        title: '온도衣 가입을 환영합니다!',
+        body: emailBody,
+        receiverList: [
+          { receiveMailAddr: userInfo.email, receiveType: 'MRT0' },
+        ],
+      },
+      {
         headers: {
-          "Content-Type": "application/json;charset=UTF-8", // 가운데 - 이게 들어가 문자열로 감싸줘야함. 원래는 안해도 됨.
-          "X-Secret-Key": XSecretKey
-      }
-    })
+          'Content-Type': 'application/json;charset=UTF-8', // 가운데 - 이게 들어가 문자열로 감싸줘야함. 원래는 안해도 됨.
+          'X-Secret-Key': XSecretKey,
+        },
+      },
+    );
     return await this.userRepository.save({
       ...userInfo,
       region,
-      nickname
+      nickname,
     });
   }
 
   async update({ currentEmail, updateUserInput }) {
     const nic = await this.userRepository.find(); // 유저 정보 파인드
+    const { regionId, ...rest } = updateUserInput;
     const updateUser = await this.userRepository.findOne({
       where: { email: currentEmail },
-      relations: ['region']
+      relations: ['region'],
     });
     const isAuthNic = updateUserInput.nickname;
-    
+
+    const region = await this.regionRepository.findOne({
+      where: { id: regionId },
+    });
+
     for (let i = 0; i < nic.length; i++) {
       // 닉네임 중복 확인
       if (isAuthNic === nic[i]['nickname']) {
@@ -137,30 +163,30 @@ export class UserService {
 
     const newUser: User = {
       ...updateUser,
-      ...updateUserInput,
+      region,
+      ...rest,
     };
     return await this.userRepository.save(newUser);
   }
 
   async updatePassword({ originPassword, updatePassword, currentEmail }) {
-    const user = await this.userRepository.findOne({ email: currentEmail })
-  
+    const user = await this.userRepository.findOne({ email: currentEmail });
+
     const isAuth = await bcrypt.compare(originPassword, user.password);
 
     if (!isAuth)
       throw new UnprocessableEntityException('현재 비밀번호가 틀렸습니다.');
 
     if (user.password)
-    user.password = await bcrypt.hash(
-      updatePassword, // 변경 비밀번호 해싱
+      user.password = await bcrypt.hash(
+        updatePassword, // 변경 비밀번호 해싱
         10,
       );
 
-    return this.userRepository.save( user )
+    return this.userRepository.save(user);
   }
 
   async delete({ currentUserEmail }) {
-
     const result = await this.userRepository.delete({
       email: currentUserEmail,
     });
@@ -168,45 +194,53 @@ export class UserService {
     return result.affected ? true : false;
   }
 
-  async send({ phone }){ // 휴대폰 번호 인증 전송
-    if( phone.length !== 10 && phone.length !== 11 ) // 핸드폰 번호 길이 검증
-      throw new UnprocessableEntityException('핸드폰 번호가 알맞지 않습니다.')
-      
+  async send({ phone }) {
+    // 휴대폰 번호 인증 전송
+    if (phone.length !== 10 && phone.length !== 11)
+      // 핸드폰 번호 길이 검증
+      throw new UnprocessableEntityException('핸드폰 번호가 알맞지 않습니다.');
+
     let tokenCount = 6;
-      // 인증번호 토큰 발급
-      const token = String(Math.floor(Math.random() * 10**tokenCount)).padStart(tokenCount, "0")
-      
-      await this.cacheManager.set(`${token}`, token,{ // redis 저장
-        ttl: 180
-      })
+    // 인증번호 토큰 발급
+    const token = String(Math.floor(Math.random() * 10 ** tokenCount)).padStart(
+      tokenCount,
+      '0',
+    );
 
-    const appKey = process.env.SMS_APP_KEY
-    const XSecretKey = process.env.SMS_X_SECRET_KEY
-    const sender = process.env.SMS_SENDER
+    await this.cacheManager.set(`${token}`, token, {
+      // redis 저장
+      ttl: 180,
+    });
 
-    const sendSms = await axios.post(`https://api-sms.cloud.toast.com/sms/v3.0/appKeys/${appKey}/sender/sms`,
-    {
-      body: `[온도衣]본인확인 인증번호[${token}]입니다. "타인 노출 금지"`,
-      sendNo: sender,
-      recipientList: [{ internationalRecipientNo: phone }]
-    },
-    {
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "X-Secret-Key": XSecretKey
-      }
-    })
+    const appKey = process.env.SMS_APP_KEY;
+    const XSecretKey = process.env.SMS_X_SECRET_KEY;
+    const sender = process.env.SMS_SENDER;
 
-    return '전송완료'
+    const sendSms = await axios.post(
+      `https://api-sms.cloud.toast.com/sms/v3.0/appKeys/${appKey}/sender/sms`,
+      {
+        body: `[온도衣]본인확인 인증번호[${token}]입니다. "타인 노출 금지"`,
+        sendNo: sender,
+        recipientList: [{ internationalRecipientNo: phone }],
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8',
+          'X-Secret-Key': XSecretKey,
+        },
+      },
+    );
+
+    return '전송완료';
   }
 
   async confirm({ authNumber }) {
     const result = await this.cacheManager.get(`${authNumber}`); // redis에 있는 인증번호 확인하기
 
-    if( result === authNumber ) {
-      return '인증완료'
+    if (result == authNumber) {
+      return '인증완료';
     } else {
-      return '인증번호를 다시 확인해 주세요.'
+      return '인증번호를 다시 확인해 주세요.';
     }
   }
 }

@@ -9,7 +9,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Region } from 'src/apis/region/entities/region.entity';
-import { Chat } from 'src/apis/chat/entities/chat.entity';
 
 @Entity()
 @ObjectType()
@@ -25,16 +24,16 @@ export class User {
   @Column() // 패스워드는 반환이 되면 안됨
   password: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   @Field(() => String)
   phone: string;
 
-  @Column()
-  @Field(() => String)
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
   gender: string;
 
-  @Column()
-  @Field(() => String)
+  @Column({ nullable: true })
+  @Field(() => String, { nullable: true })
   style: string;
 
   @Column()
@@ -49,13 +48,9 @@ export class User {
   @Field(() => Int)
   button: number;
 
-  @ManyToOne(() => Region)
-  @Field(() => Region)
+  @ManyToOne(() => Region, { nullable: true })
+  @Field(() => Region, { nullable: true })
   region: Region;
-
-  @ManyToOne(() => Chat)
-  @Field(() => Chat)
-  chat: Chat;
 
   @CreateDateColumn()
   @Field(() => Date)

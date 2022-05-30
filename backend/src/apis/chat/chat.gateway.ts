@@ -6,25 +6,27 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { CurrentUser } from 'src/commons/auth/gql-user.param'; // 로그인 인증된
-import { Chat } from './entities/chat.entity';
 import { User } from '../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
+import { ChatMsg } from './entities/chatMsg.entity';
+import { ChatRoom } from './entities/chatRoom.entity';
 
 @WebSocketGateway({
   namespace: 'chat', // cors문제 해결해줘야 함.
   cors: { origin: '*', credentials: true },
-  transports: ['websocket'],
+  // transports: ['websocket'],
 }) // 방 만들기(포트 설정 해주기)\
 @Injectable()
 export class ChatGateway {
   constructor(
-    @InjectRepository(Chat)
-    private readonly chatRepository: Repository<Chat>,
+    @InjectRepository(ChatMsg)
+    private readonly chatMsgRepository: Repository<ChatMsg>,
+    @InjectRepository(ChatRoom)
+    private readonly chatRoomRepository: Repository<ChatRoom>,
     @InjectRepository(User)
-    private readonly userRepositoey: Repository<User>,
+    private readonly userRepository: Repository<User>,
   ) {}
 
   @WebSocketServer()
@@ -44,12 +46,15 @@ export class ChatGateway {
     console.log(this.server, 'server');
     this.wsClients.push(client);
   }
-
+  
   private broadcast(event, client, message: any) {
     for (let c of this.wsClients) {
+      console.log("AAAAA")
       if (client.id == c.id) continue;
+      console.log("BBBB")
       c.emit(event, message);
     }
+    console.log("CCCC") // 이게 문제인지 확인 해볼것!
   }
 
   @SubscribeMessage('send')
@@ -58,14 +63,14 @@ export class ChatGateway {
     @ConnectedSocket() client,
   ) {
     const [room, nickname, message] = data;
-    const user = await this.userRepositoey.findOne({
+    const user = await this.userRepository.findOne({
       where: { nickname: nickname },
     });
-
-    const result = await this.chatRepository.save({
+    
+    const result = await this.chatMsgRepository.save({
       // redis에 저장 해보기?!
-      user: user,
-      room: room,
+      user: { id: user.id},
+      chatRoom: { id: room },
       message: data[2],
     });
 
