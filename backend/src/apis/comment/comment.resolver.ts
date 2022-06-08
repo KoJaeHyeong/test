@@ -10,15 +10,13 @@ import { fetchCommentOutput } from './dto/fetchComment.output';
 
 @Resolver()
 export class CommentResolver {
-  constructor(
-    private readonly commentService: CommentService, //
-  ) {}
+  constructor(private readonly commentService: CommentService) {}
 
   @UseGuards(GqlAuthAccessGuard)
   @Query(() => fetchCommentOutput)
   fetchComments(
-    @Args('feedId', { type: () => String }) feedId: string, //
-    @Args('page', { nullable: true, type: () => Int }) page?: number, //
+    @Args('feedId', { type: () => String }) feedId: string,
+    @Args('page', { nullable: true, type: () => Int }) page?: number,
   ) {
     return this.commentService.findAll({ feedId, page });
   }
@@ -26,12 +24,12 @@ export class CommentResolver {
   @UseGuards(GqlAuthAccessGuard)
   @Query(() => [Comment])
   fetchSubComments(
-    @Args('pCommentId', { type: () => String }) pCommentId: string, //
+    @Args('pCommentId', { type: () => String }) pCommentId: string,
   ) {
     return this.commentService.findSubComments({ pCommentId });
   }
 
-  @UseGuards(GqlAuthAccessGuard) // 로그인한 유저 댓글 가능
+  @UseGuards(GqlAuthAccessGuard)
   @Mutation(() => Comment)
   createComment(
     @CurrentUser() currentUser: ICurrentUser,
@@ -59,8 +57,8 @@ export class CommentResolver {
   @Mutation(() => Boolean)
   deleteComment(
     @CurrentUser() currentUser: ICurrentUser,
-    @Args('commentId') commentId: string, //
+    @Args('commentId') commentId: string,
   ) {
-    return this.commentService.delete({ commentId }); // feedId 추가해야함
+    return this.commentService.delete({ commentId });
   }
 }

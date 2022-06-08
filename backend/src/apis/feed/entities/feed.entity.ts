@@ -96,10 +96,6 @@ export class Feed {
   @Field(() => User)
   user: User;
 
-  @DeleteDateColumn()
-  @Field(() => Date)
-  deletedAt: Date;
-
   @CreateDateColumn()
   @Field(() => Date)
   createdAt: Date;
@@ -107,4 +103,8 @@ export class Feed {
   @UpdateDateColumn()
   @Field(() => Date)
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  @Field(() => Date)
+  deletedAt: Date;
 }

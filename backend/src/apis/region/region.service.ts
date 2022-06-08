@@ -30,12 +30,10 @@ export class RegionService {
 
   async create({ regionId, lat, lon }) {
     const checkDup = await this.regionRepository.findOne({
-      where: {
-        id: regionId,
-      },
+      where: { id: regionId },
     });
 
-    if (checkDup) throw new ConflictException('이미 등록된 지역명입니다'); // 지역명 중복 확인
+    if (checkDup) throw new ConflictException('이미 등록된 지역명입니다');
 
     const result = await this.regionRepository.save({
       id: regionId,

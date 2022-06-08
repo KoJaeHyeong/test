@@ -73,7 +73,7 @@ prod: https://server.t1dreamers.shop/graphql
 
 ## ERD 설계
 
-![](readme-imgs/최종%20ERD.png)
+![](readme-imgs/%EC%98%A8%EB%8F%84%EC%9D%98%20ERD.png)
 
 ## Data-Flow
 
@@ -169,8 +169,25 @@ git push origin develop (Cloud-Build CI/CD)
 
 ## 정보
 
+고재형
+<br>
+블로그 : [제주에서 온 짱구](https://velog.io/@ko1586)
+<br>
+github : https://github.com/KoJaeHyeong
+<br>
+email : jaehyeong1586@gmail.com
+<br>
+
+<hr>
+</hr>
+김태영
+<br>
+
 블로그 : [leoKim's velog](https://story0tae.tistory.com/)
 <br>
+github : https://github.com/leokim1178
+<br>
 email : leo3179@naver.com
+<br>
 
 <!-- Markdown link & img dfn's -->
