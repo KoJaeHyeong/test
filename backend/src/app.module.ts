@@ -35,7 +35,6 @@ import { TestModule } from './apis/test/test.module';
     ChatModule,
     CronModule,
     FeedLikeModule,
-    TestModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'src/commons/graphql/schema.gql',
